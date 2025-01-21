@@ -40,7 +40,7 @@ int setup_buff(char *buff, char *user_str, int len) {
     }
     
     while (write_index < len) {
-        buff[write_index++] = ' ';
+        buff[write_index++] = '.';
     }
 
     return write_index;
@@ -61,21 +61,29 @@ void usage(char *exename){
 
 int count_words(char *buff, int len, int str_len) {
     if (buff == NULL || str_len < 0 || str_len > len) {
-        return -1;
+        return -1; // Error if buffer is null or str_len is invalid
     }
-    int wordCount = 0;
-    int inWord = 0;
 
-    for (int i = 0; i < str_len; i++) {
-        if (buff[i] != ' ' && buff[i] != '\t') {
-            if (!inWord) {
-                wordCount++;
-                inWord = 1;
-            }
-        } else {
-            inWord = 0;
+    int wordCount = 0;
+    int i = 0;
+
+    while (i < str_len) {
+        // Skip leading spaces and tabs
+        while (i < str_len && (buff[i] == ' ' || buff[i] == '\t')) {
+            i++;
+        }
+
+        // If a non-space character is found, it's the start of a word
+        if (i < str_len && buff[i] != ' ' && buff[i] != '\t') {
+            wordCount++;
+        }
+
+        // Skip characters of the current word
+        while (i < str_len && buff[i] != ' ' && buff[i] != '\t') {
+            i++;
         }
     }
+
     return wordCount;
 }
 
@@ -100,55 +108,40 @@ void charSwap(char *a, char *b){
 // two pointer approach to reverse the characters in buff while calling the charSwap function
 void reverseString(char *str, int len){
     int i = 0;
-    int lastNonSpace = 0;
-    for (int i = 0; i < len; i++) {
-        if (str[i] != ' '){
-            lastNonSpace = i;
-        }
-    }
-    int j = lastNonSpace;
+    int j = len - 1;
     while (i < j){
         charSwap(&str[i], &str[j]);
         i++;
         j--;
     }
-    print_buff(str, len);
 }
 
-void wordPrint(char *str) {
+// Function to print words in order.
+void  wordPrint(char* buff, int str_len)
+{
+    int words_count = count_words(buff, BUFFER_SZ, str_len);
+    int char_count = 0;
+    int index = 0;
+
     printf("Word Print\n");
     printf("----------\n");
 
-    int wordCount = 1;
-    int charCount = 0;
-    int startOfWord = 1;
-
-    int lastNonSpace = 0;
-    for (int i = 0; str[i] != '\0' && i < BUFFER_SZ; i++){
-        if (str[i] != ' ') {
-            lastNonSpace = i;
+    for (int i = 0; i < words_count; i++)
+    {
+        printf("%d. ", i+1);
+        while (buff[index] != ' ' && index != str_len - 1)
+        {
+            printf("%c", buff[index]);
+            index++;
+            char_count++;
         }
+        printf(" (%d)\n", char_count);
+        char_count = 0;
+        index++;     
     }
-    for (int i = 0; i <= lastNonSpace; i++) {
-        if (str[i] == ' '){
-            if (!startOfWord) {
-                printf(" (%d)\n", charCount);
-                charCount = 0;
-                startOfWord = 1;
-            }
-        } else {
-            if (startOfWord) {
-                printf("%d. ", wordCount++);
-                startOfWord = 0;
-            }
-            printf("%c", str[i]);
-            charCount++;
-        }
-    }
-    if (charCount > 0) {
-        printf(" (%d)\n", charCount);
-    }
+    printf("\n");
 }
+
 
 int main(int argc, char *argv[]){
 
@@ -215,7 +208,7 @@ int main(int argc, char *argv[]){
             reverseString(buff,user_str_len);
             break;
         case 'w':
-            wordPrint(buff);
+            wordPrint(buff, user_str_len);
             break;
         //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
         //       the case statement options
@@ -225,6 +218,7 @@ int main(int argc, char *argv[]){
     }
 
     //TODO:  #6 Dont forget to free your buffer before exiting
+    print_buff(buff, BUFFER_SZ);
     free(buff);
     exit(0);
 }
