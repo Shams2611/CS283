@@ -21,6 +21,7 @@ int setup_buff(char *buff, char *user_str, int len) {
     }
     int write_index = 0;
     int readIndex = 0;
+    int user_str_len = 0;
     int lastWasSpace = 1;
     while (user_str[readIndex] == ' ' || user_str[readIndex] == '\t') {
         readIndex++;
@@ -39,11 +40,13 @@ int setup_buff(char *buff, char *user_str, int len) {
         readIndex++;
     }
     
+    user_str_len = write_index;
+
     while (write_index < len) {
         buff[write_index++] = '.';
     }
 
-    return write_index;
+    return user_str_len;
 }
 
 void print_buff(char *buff, int len){
@@ -117,28 +120,32 @@ void reverseString(char *str, int len){
 }
 
 // Function to print words in order.
-void  wordPrint(char* buff, int str_len)
+void wordPrint(char* buff, int len)
 {
-    int words_count = count_words(buff, BUFFER_SZ, str_len);
-    int char_count = 0;
-    int index = 0;
+    int words_count = count_words(buff, len, len);  
+    int char_count = 0; 
+    int index = 0;       
 
     printf("Word Print\n");
     printf("----------\n");
 
-    for (int i = 0; i < words_count; i++)
-    {
-        printf("%d. ", i+1);
-        while (buff[index] != ' ' && index != str_len - 1)
+    // Loop through the words using words_count.
+    for (int i = 0; i < words_count; i++){
+        printf("%d. ", i + 1);  
+        while (buff[index] != ' ' && index != len)
         {
             printf("%c", buff[index]);
             index++;
             char_count++;
         }
-        printf(" (%d)\n", char_count);
-        char_count = 0;
-        index++;     
-    }
+
+        printf(" (%d)\n", char_count);  
+        char_count = 0;  
+        // Skip over any spaces between words.
+        while (buff[index] == ' ')
+        {
+            index++;
+        }}
     printf("\n");
 }
 
@@ -190,6 +197,7 @@ int main(int argc, char *argv[]){
 
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
+    printf("%d\n", user_str_len);
     if (user_str_len < 0){
         printf("Error setting up buffer, error = %d", user_str_len);
         exit(2);
