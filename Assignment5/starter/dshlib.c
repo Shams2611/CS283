@@ -52,15 +52,14 @@
  *  Standard Library Functions You Might Want To Consider Using (assignment 2+)
  *      fork(), execvp(), exit(), chdir()
  */
-int exec_local_cmd_loop()
-{
+int exec_local_cmd_loop(){
     char *cmd_buff = malloc(SH_CMD_MAX);
     int rc = 0;
     cmd_buff_t cmd;
-
-    if (!cmd_buff) {
+    if (!cmd_buff){
         return ERR_MEMORY;
     }
+
 
     while (1) {
         printf("%s", SH_PROMPT);
@@ -70,26 +69,24 @@ int exec_local_cmd_loop()
         }
         // Removing the trailing \n from cmd_buff
         cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
-
-        // If no command is given, continue
         if (strlen(cmd_buff) == 0) {
             printf("%s", CMD_WARN_NO_CMD);
             continue;
         }
 
-        if (strcmp(cmd_buff, EXIT_CMD) == 0) {
+        if (strcmp(cmd_buff, EXIT_CMD) == 0){
             free(cmd_buff);
             exit(OK);
         }
 
-        // Handle cd command
         if (strncmp(cmd_buff, "cd", 2) == 0 && (cmd_buff[2] == '\0' || cmd_buff[2] == ' ')) {
+            
             strtok(cmd_buff, " ");
             char *dir_arg = strtok(NULL, " ");
 
-            if (dir_arg == NULL) {
+            if (dir_arg == NULL){
                 continue;
-            } else {
+            }else {
                 char *extra_arg = strtok(NULL, " ");
                 if (extra_arg != NULL) {
                     printf("cd: error too many arguments!");
@@ -103,18 +100,20 @@ int exec_local_cmd_loop()
                     continue;
                 }
             }
+            
             continue;
         }
 
         rc = build_cmd_buff(cmd_buff, &cmd);
-        if (rc == OK) {
+        if (rc == OK){
             rc = exec_cmd(&cmd);
-        } else if (rc == WARN_NO_CMDS) {
+        } else if (rc == WARN_NO_CMDS){
             printf("%s", CMD_WARN_NO_CMD);
         } else {
             printf(CMD_ERR_PIPE_LIMIT, CMD_MAX);
         }
     }
+
 
     free(cmd_buff);
     return OK;
@@ -123,20 +122,20 @@ int exec_local_cmd_loop()
 int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff)
 {
     memset(cmd_buff, 0, sizeof(cmd_buff_t));
-
     cmd_buff->_cmd_buffer = strdup(cmd_line);
-    if (!cmd_buff->_cmd_buffer) {
+    if (!cmd_buff->_cmd_buffer){
         return ERR_MEMORY;
     }
 
     bool inside_quotes = false;
     int arg_count = 0;
 
-    while (*cmd_line) {
+    while (*cmd_line){
         while (*cmd_line == SPACE_CHAR && !inside_quotes) {
             cmd_line++;
         }
 
+        
         if (*cmd_line == '\0') {
             if (arg_count > 0) {
                 break;
@@ -154,11 +153,11 @@ int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff)
         cmd_buff->argv[arg_count] = cmd_line;
         arg_count++;
 
+
         if (arg_count > 0 && (strlen(cmd_buff->argv[arg_count - 1]) >= ARG_MAX || arg_count >= CMD_ARGV_MAX)) {
             free(cmd_buff->_cmd_buffer);
             return ERR_CMD_OR_ARGS_TOO_BIG;
         }
-
         while (*cmd_line && (*cmd_line != SPACE_CHAR || inside_quotes)) {
             if (*cmd_line == QUOTES) {
                 inside_quotes = !inside_quotes;
@@ -179,8 +178,7 @@ int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff)
     return OK;
 }
 
-int exec_cmd(cmd_buff_t *cmd)
-{
+int exec_cmd(cmd_buff_t *cmd){
     int pid = fork();
 
     if (pid < 0) {
@@ -194,8 +192,7 @@ int exec_cmd(cmd_buff_t *cmd)
         int status;
         waitpid(pid, &status, 0);
         return WEXITSTATUS(status);
-    }
-}
+    }}
 
 int last_return_code = 0;
 
