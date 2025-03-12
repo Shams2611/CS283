@@ -66,37 +66,28 @@
             printf("\n");
             break;
         }
-
-        // Remove trailing newline
         cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
-
-        // Handle empty input
         if (strlen(cmd_buff) == 0) {
             printf("%s", CMD_WARN_NO_CMD);
             continue;
         }
-
-        // Handle exit command
         if (strcmp(cmd_buff, EXIT_CMD) == 0) {
             free(cmd_buff);
             printf("exiting...\n");
             return OK;
         }
 
-        // Handle 'cd' command
         if (strncmp(cmd_buff, "cd", 2) == 0 && (cmd_buff[2] == '\0' || cmd_buff[2] == ' ')) {
             char *path = strtok(cmd_buff + 3, " ");
             if (path == NULL) {
-                continue; // No argument provided for cd
+                continue; 
             }
 
             if (chdir(path) != 0) {
-                printf("error: command failed\n"); // Match the expected error format
+                printf("error: command failed\n"); 
             }
             continue;
         }
-
-        // Build command list
         int rc = build_cmd_list(cmd_buff, &clist);
         if (rc != OK) {
             if (rc == ERR_TOO_MANY_COMMANDS) {
@@ -108,17 +99,13 @@
             }
             continue;
         }
-
-        // Execute the pipeline
         execute_pipeline(&clist);
     }
 
     free(cmd_buff);
     return OK;
 }
-/*
- * Build a command list from the input command line.
- */
+
 int build_cmd_list(char *cmd_line, command_list_t *clist){
     memset(clist, 0, sizeof(command_list_t));
     char *token = strtok(cmd_line, PIPE_STRING);
