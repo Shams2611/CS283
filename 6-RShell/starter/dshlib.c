@@ -308,3 +308,15 @@ int execute_pipeline(command_list_t *clist) {
 
     return OK;
 }
+
+int free_cmd_list(command_list_t *cmd_lst) {
+    if (!cmd_lst) {
+        return ERR_MEMORY;
+    }
+
+    for (int i = 0; i < cmd_lst->num; i++) {
+        free(cmd_lst->commands[i]._cmd_buffer);
+    }
+
+    return OK;
+}

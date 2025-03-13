@@ -216,3 +216,37 @@ EOF
     [[ "$clean_output" =~ $expected_regex ]]
     [ "$status" -eq 0 ]
 }
+
+@test "Output redirection with '>'" {
+    run "./dsh" <<EOF
+echo "Hello, World" > output.txt
+EOF
+
+    [ "$status" -eq 0 ]
+    [ -f "output.txt" ]
+    [ "$(cat output.txt)" = "Hello, World" ]
+    rm -f output.txt
+}
+
+@test "Output redirection with '>>' (append)" {
+    echo "Existing content" > output.txt
+    run "./dsh" <<EOF
+echo "Hello, World" >> output.txt
+EOF
+
+    [ "$status" -eq 0 ]
+    [ -f "output.txt" ]
+    [ "$(cat output.txt)" = "Existing content\nHello, World" ]
+    rm -f output.txt
+}
+
+@test "Input redirection with '<'" {
+    echo "Hello, World" > input.txt
+    run "./dsh" <<EOF
+cat < input.txt
+EOF
+
+    [ "$status" -eq 0 ]
+    [ "$output" = "Hello, Worlddsh3> dsh3> cmd loop returned 0" ]
+    rm -f input.txt
+}

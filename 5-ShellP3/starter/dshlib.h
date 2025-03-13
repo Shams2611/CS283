@@ -1,7 +1,7 @@
 #ifndef __DSHLIB_H__
     #define __DSHLIB_H__
 
-
+#include <stdbool.h>
 //Constants for command structure sizes
 #define EXE_MAX 64
 #define ARG_MAX 256
@@ -11,18 +11,21 @@
 #define SH_CMD_MAX EXE_MAX + ARG_MAX
 
 typedef struct command
-{
+{   
     char exe[EXE_MAX];
     char args[ARG_MAX];
 } command_t;
 
-typedef struct cmd_buff
-{
-    int  argc;
+typedef struct cmd_buff {
+    int argc;
     char *argv[CMD_ARGV_MAX];
     char *_cmd_buffer;
-} cmd_buff_t;
 
+    // NEW: Fields for redirection
+    char *input_file;       // File for input redirection (<)
+    char *output_file;      // File for output redirection (> or >>)
+    bool append_output;     // True if output redirection is append (>>)
+} cmd_buff_t;
 /* WIP - Move to next assignment 
 #define N_ARG_MAX    15     //MAX number of args for a command
 typedef struct command{
