@@ -1,7 +1,7 @@
 #ifndef __DSHLIB_H__
     #define __DSHLIB_H__
 
-#include <stdbool.h>
+
 //Constants for command structure sizes
 #define EXE_MAX 64
 #define ARG_MAX 256
@@ -11,30 +11,22 @@
 #define SH_CMD_MAX EXE_MAX + ARG_MAX
 
 typedef struct command
-{   
+{
     char exe[EXE_MAX];
     char args[ARG_MAX];
 } command_t;
 
-typedef struct cmd_buff {
-    int argc;
+#include <stdbool.h>
+
+typedef struct cmd_buff
+{
+    int  argc;
     char *argv[CMD_ARGV_MAX];
     char *_cmd_buffer;
-
-    // NEW: Fields for redirection
-    char *input_file;       // File for input redirection (<)
-    char *output_file;      // File for output redirection (> or >>)
-    bool append_output;     // True if output redirection is append (>>)
+    char *input_file;  // extra credit, stores input redirection file (for `<`)
+    char *output_file; // extra credit, stores output redirection file (for `>`)
+    bool append_mode; // extra credit, sets append mode fomr output_file
 } cmd_buff_t;
-/* WIP - Move to next assignment 
-#define N_ARG_MAX    15     //MAX number of args for a command
-typedef struct command{
-    char exe [EXE_MAX];
-    char args[ARG_MAX];
-    int  argc;
-    char *argv[N_ARG_MAX + 1];  //last argv[LAST] must be \0
-}command_t;
-*/
 
 typedef struct command_list{
     int num;
@@ -46,9 +38,10 @@ typedef struct command_list{
 #define PIPE_CHAR   '|'
 #define PIPE_STRING "|"
 
-#define SH_PROMPT "dsh3> "
-#define EXIT_CMD "exit"
-#define EXIT_SC     99
+#define SH_PROMPT       "dsh4> "
+#define EXIT_CMD        "exit"
+#define RC_SC           99
+#define EXIT_SC         100
 
 //Standard Return Codes
 #define OK                       0
@@ -59,6 +52,8 @@ typedef struct command_list{
 #define ERR_MEMORY              -5
 #define ERR_EXEC_CMD            -6
 #define OK_EXIT                 -7
+
+
 
 //prototypes
 int alloc_cmd_buff(cmd_buff_t *cmd_buff);
@@ -74,6 +69,8 @@ typedef enum {
     BI_CMD_EXIT,
     BI_CMD_DRAGON,
     BI_CMD_CD,
+    BI_CMD_RC,              //extra credit command
+    BI_CMD_STOP_SVR,        //new command "stop-server"
     BI_NOT_BI,
     BI_EXECUTED,
 } Built_In_Cmds;
@@ -86,11 +83,10 @@ int exec_cmd(cmd_buff_t *cmd);
 int execute_pipeline(command_list_t *clist);
 
 
-
-
 //output constants
 #define CMD_OK_HEADER       "PARSED COMMAND LINE - TOTAL COMMANDS %d\n"
 #define CMD_WARN_NO_CMD     "warning: no commands provided\n"
 #define CMD_ERR_PIPE_LIMIT  "error: piping limited to %d commands\n"
+#define BI_NOT_IMPLEMENTED "not implemented"
 
 #endif

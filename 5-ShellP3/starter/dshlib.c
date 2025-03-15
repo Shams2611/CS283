@@ -151,6 +151,11 @@ int build_cmd_buff(char *cmd, cmd_buff_t *cbuff) {
     bool in_quotes = false;
     int arg_count = 0;
 
+    // Initialize redirection fields
+    cbuff->input_file = NULL;
+    cbuff->output_file = NULL;
+    cbuff->append_output = false;
+
     while (*cmd) {
         while (*cmd == SPACE_CHAR && !in_quotes) {
             cmd++;
@@ -164,10 +169,37 @@ int build_cmd_buff(char *cmd, cmd_buff_t *cbuff) {
             break;
         }
 
-        if (*cmd == '"'){
+        // Handle input redirection
+        if (*cmd == '<' && !in_quotes) {
+            *cmd = '\0'; // Terminate the command
+            cmd++;
+            while (*cmd == SPACE_CHAR) cmd++; // Skip spaces
+            cbuff->input_file = cmd;
+            while (*cmd && *cmd != SPACE_CHAR) cmd++; // Move to end of filename
+            *cmd = '\0'; // Terminate the filename
+            cmd++;
+            continue;
+        }
+
+        // Handle output redirection
+        if (*cmd == '>' && !in_quotes) {
+            *cmd = '\0'; // Terminate the command
+            cmd++;
+            if (*cmd == '>') { // Handle append (>>)
+                cbuff->append_output = true;
+                cmd++;
+            }
+            while (*cmd == SPACE_CHAR) cmd++; // Skip spaces
+            cbuff->output_file = cmd;
+            while (*cmd && *cmd != SPACE_CHAR) cmd++; // Move to end of filename
+            *cmd = '\0'; // Terminate the filename
+            cmd++;
+            continue;
+        }
+
+        if (*cmd == '"') {
             in_quotes = !in_quotes;
             cmd++;
-        
         }
 
         cbuff->argv[arg_count] = cmd;
@@ -175,16 +207,14 @@ int build_cmd_buff(char *cmd, cmd_buff_t *cbuff) {
 
         if (arg_count >= CMD_ARGV_MAX || strlen(cbuff->argv[arg_count - 1]) >= ARG_MAX) {
             free(cbuff->_cmd_buffer);
-            
             return ERR_CMD_OR_ARGS_TOO_BIG;
         }
 
-        while (*cmd && (*cmd != SPACE_CHAR || in_quotes)){
+        while (*cmd && (*cmd != SPACE_CHAR || in_quotes)) {
             if (*cmd == '"') {
                 in_quotes = !in_quotes;
                 *cmd = '\0';
             }
-
             cmd++;
         }
 
@@ -199,18 +229,15 @@ int build_cmd_buff(char *cmd, cmd_buff_t *cbuff) {
 
     return OK;
 }
-
-int execute_pipeline(command_list_t *clist){
-
+int execute_pipeline(command_list_t *clist) {
     int pipe_fds[2 * (clist->num - 1)];
     pid_t pids[clist->num];
     int prev_pipe_read = -1;
 
     for (int i = 0; i < clist->num; i++) {
         if (i < clist->num - 1) {
-            if (pipe(pipe_fds + i * 2) < 0){
+            if (pipe(pipe_fds + i * 2) < 0) {
                 perror("pipe");
-
                 exit(EXIT_FAILURE);
             }
         }
@@ -218,11 +245,36 @@ int execute_pipeline(command_list_t *clist){
         pids[i] = fork();
 
         if (pids[i] < 0) {
-
             perror("fork");
-
             exit(EXIT_FAILURE);
-        }else if (pids[i] == 0){
+        } else if (pids[i] == 0) {
+            // Handle input redirection
+            if (clist->commands[i].input_file) {
+                int fd = open(clist->commands[i].input_file, O_RDONLY);
+                if (fd < 0) {
+                    perror("open");
+                    exit(EXIT_FAILURE);
+                }
+                dup2(fd, STDIN_FILENO);
+                close(fd);
+            }
+
+            // Handle output redirection
+            if (clist->commands[i].output_file) {
+                int flags = O_WRONLY | O_CREAT;
+                if (clist->commands[i].append_output) {
+                    flags |= O_APPEND; // Append mode for >>
+                } else {
+                    flags |= O_TRUNC; // Overwrite mode for >
+                }
+                int fd = open(clist->commands[i].output_file, flags, 0644);
+                if (fd < 0) {
+                    perror("open");
+                    exit(EXIT_FAILURE);
+                }
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
+            }
 
             if (i > 0) {
                 dup2(prev_pipe_read, STDIN_FILENO);
@@ -238,7 +290,7 @@ int execute_pipeline(command_list_t *clist){
             execvp(clist->commands[i].argv[0], clist->commands[i].argv);
             perror("execvp");
             exit(EXIT_FAILURE);
-        } else{
+        } else {
             if (i > 0) {
                 close(prev_pipe_read);
             }
