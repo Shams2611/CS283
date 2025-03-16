@@ -19,9 +19,9 @@ typedef struct cmd_buff {
     int argc;
     char *argv[CMD_ARGV_MAX];
     char *_cmd_buffer;
-    char *input_file;  // extra credit, stores input redirection file (for `<`)
-    char *output_file; // extra credit, stores output redirection file (for `>`)
-    bool append_output;  // extra credit, sets append mode for output_file
+    char *input_file;  
+    char *output_file; 
+    bool append_output;  
 } cmd_buff_t;
 
 typedef struct command_list {
@@ -29,7 +29,6 @@ typedef struct command_list {
     cmd_buff_t commands[CMD_MAX];
 } command_list_t;
 
-// Special character #defines
 #define SPACE_CHAR ' '
 #define PIPE_CHAR '|'
 #define PIPE_STRING "|"
@@ -44,7 +43,7 @@ typedef struct command_list {
 #define WARN_NO_CMDS -1
 #define ERR_TOO_MANY_COMMANDS -2
 #define ERR_CMD_OR_ARGS_TOO_BIG -3
-#define ERR_CMD_ARGS_BAD -4 // for extra credit
+#define ERR_CMD_ARGS_BAD -4 
 #define ERR_MEMORY -5
 #define ERR_EXEC_CMD -6
 #define OK_EXIT -7
@@ -63,8 +62,8 @@ typedef enum {
     BI_CMD_EXIT,
     BI_CMD_DRAGON,
     BI_CMD_CD,
-    BI_CMD_RC,       // extra credit command
-    BI_CMD_STOP_SVR, // new command "stop-server"
+    BI_CMD_RC,       
+    BI_CMD_STOP_SVR, 
     BI_NOT_BI,
     BI_EXECUTED,
 } Built_In_Cmds;
