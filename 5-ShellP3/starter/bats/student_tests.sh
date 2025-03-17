@@ -2,6 +2,8 @@
 
 # File: student_tests.sh
 # Unit tests for the custom shell (dsh)
+# Adding additional comments to check 
+
 
 @test "Verify 'ls' command executes successfully" {
     run ./dsh <<EOF
