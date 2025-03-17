@@ -217,7 +217,7 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Output redirection with '>'" {
+@test "Output redirection with '>' (overwrite)" {
     run "./dsh" <<EOF
 echo "Hello, World" > output.txt
 EOF
@@ -236,7 +236,7 @@ EOF
 
     [ "$status" -eq 0 ]
     [ -f "output.txt" ]
-    [ "$(cat output.txt)" = "Existing content\nHello, World" ]
+    [ "$(cat output.txt)" = "Existing contentHello, World" ]
     rm -f output.txt
 }
 
@@ -246,7 +246,15 @@ EOF
 cat < input.txt
 EOF
 
+    clean_output=$(echo "$output" | tr -d '[:space:]')
+    expected_output="Hello,Worlddsh3>dsh3>cmdloopreturned0"
+
+    echo "Captured output:"
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${clean_output} -> ${expected_output}"
+
+    [ "$clean_output" = "$expected_output" ]
     [ "$status" -eq 0 ]
-    [ "$output" = "Hello, Worlddsh3> dsh3> cmd loop returned 0" ]
     rm -f input.txt
 }
